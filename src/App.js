@@ -1,13 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Login from './Login';
 import Signup from './Signup';
 import Dashboard from './Dashboard';
-import './App.css';
 
-function App() {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isSignupMode, setIsSignupMode] = useState(false);
+const App = () => {
+  const [token, setToken] = useState(localStorage.getItem('token') || '');
 
   const handleLogin = (newToken) => {
     localStorage.setItem('token', newToken);
@@ -16,21 +14,30 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    setToken(null);
+    setToken('');
+  };
+
+  const RequireAuth = ({ children }) => {
+    return token ? children : <Navigate to="/login" />;
   };
 
   return (
-    <div className="app-container">
-      <img src="/logo.png" alt="Diamond Basketball Officials" className="logo" />
-      {token ? (
-        <Dashboard token={token} onLogout={handleLogout} />
-      ) : isSignupMode ? (
-        <Signup onLogin={handleLogin} switchToLogin={() => setIsSignupMode(false)} />
-      ) : (
-        <Login onLogin={handleLogin} switchToSignup={() => setIsSignupMode(true)} />
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/signup" element={<Signup onLogin={handleLogin} />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <Dashboard onLogout={handleLogout} />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
