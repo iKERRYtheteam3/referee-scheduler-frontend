@@ -1,48 +1,74 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import logo from './logo.png'; // Ensure this logo is in the src/ folder
 
-function Signup({ onLogin, switchToLogin }) {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'referee',
-  });
+const Signup = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-
-    const data = await res.json();
-    if (data.token) {
+    try {
+      const response = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) throw new Error('Signup failed');
+      const data = await response.json();
       onLogin(data.token);
-    } else {
-      alert(data.msg || 'Signup failed');
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Signup failed');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Sign Up</h2>
-      <input name="name" type="text" autoComplete="name" placeholder="Name" value={form.name} onChange={handleChange} required />
-      <input name="email" type="email" autoComplete="email" placeholder="Email" value={form.email} onChange={handleChange} required />
-      <input name="password" type="password" autoComplete="new-password" placeholder="Password" value={form.password} onChange={handleChange} required />
-      <select name="role" value={form.role} onChange={handleChange} required>
-        <option value="referee">Referee</option>
-        <option value="admin">Admin</option>
-      </select>
-      <button type="submit">Create Account</button>
-      <p>Already have an account? <button type="button" onClick={switchToLogin}>Login</button></p>
-    </form>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '90vh',
+      backgroundColor: '#f0f4f8',
+      padding: '1rem'
+    }}>
+      <img src={logo} alt="Logo" style={{ width: '200px', marginBottom: '1.5rem' }} />
+      <form onSubmit={onSubmit} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column' }}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{ padding: '12px', marginBottom: '12px', borderRadius: '6px', border: '1px solid #ccc' }}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={{ padding: '12px', marginBottom: '12px', borderRadius: '6px', border: '1px solid #ccc' }}
+        />
+        <button type="submit" style={{
+          padding: '12px',
+          backgroundColor: '#004aad',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '6px',
+          fontWeight: 'bold'
+        }}>
+          Sign Up
+        </button>
+        {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+      </form>
+    </div>
   );
-}
+};
 
 export default Signup;
