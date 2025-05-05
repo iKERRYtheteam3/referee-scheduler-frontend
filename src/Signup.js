@@ -32,30 +32,9 @@ function Signup({ onLogin, switchToLogin }) {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Sign Up</h2>
-      <input
-        name="name"
-        type="text"
-        placeholder="Name"
-        value={form.name}
-        onChange={handleChange}
-        required
-      />
-      <input
-        name="email"
-        type="email"
-        placeholder="Email"
-        value={form.email}
-        onChange={handleChange}
-        required
-      />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        value={form.password}
-        onChange={handleChange}
-        required
-      />
+      <input name="name" type="text" autoComplete="name" placeholder="Name" value={form.name} onChange={handleChange} required />
+      <input name="email" type="email" autoComplete="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+      <input name="password" type="password" autoComplete="new-password" placeholder="Password" value={form.password} onChange={handleChange} required />
       <select name="role" value={form.role} onChange={handleChange} required>
         <option value="referee">Referee</option>
         <option value="admin">Admin</option>
