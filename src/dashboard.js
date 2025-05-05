@@ -1,96 +1,127 @@
-import React, { useEffect, useState } from 'react';
 
-function Dashboard({ token, onLogout }) {
-  const [games, setGames] = useState([]);
-  const [userRole, setUserRole] = useState('');
-  const [newGame, setNewGame] = useState({
-    date: '', time: '', location: '', teams: '', level: '', refsNeeded: 1
-  });
+import React, { useState } from 'react';
+import './Dashboard.css';
 
-  useEffect(() => {
-    fetch('https://referee-scheduler-backend.onrender.com/api/games', {
-      headers: { 'x-auth-token': token },
-    })
-      .then(res => res.json())
-      .then(data => setGames(data));
+const Dashboard = () => {
+  const [userEmail] = useState('referee@example.com'); // Placeholder for authenticated user
+  const [available, setAvailable] = useState(true);
+  const [profile, setProfile] = useState({
+    name: 'John Doe',
+    email: 'referee@example.com',
+    password: '********'
+  });
 
-    fetch('https://referee-scheduler-backend.onrender.com/api/auth/me', {
-      headers: { 'x-auth-token': token }
-    })
-      .then(res => res.json())
-      .then(data => setUserRole(data.role));
-  }, [token]);
+  const [upcomingGames] = useState([
+    { id: 1, date: '2025-05-10', time: '2:00 PM', location: 'Main Stadium' },
+    { id: 2, date: '2025-05-12', time: '6:00 PM', location: 'East Field' },
+    { id: 3, date: '2025-05-14', time: '4:00 PM', location: 'West Field' }
+  ]);
 
-  const handleSignup = async (id) => {
-    const res = await fetch(`https://referee-scheduler-backend.onrender.com/api/games/${id}/signup`, {
-      method: 'POST',
-      headers: {
-        'x-auth-token': token,
-        'Content-Type': 'application/json',
-      }
-    });
-    const data = await res.json();
-    if (res.ok) {
-      alert('Signed up successfully!');
-      setGames(games.map(g => g._id === id ? data : g));
-    } else {
-      alert(data.msg || 'Error signing up');
-    }
-  };
+  const [signedUpGames, setSignedUpGames] = useState([]);
+  const [adminMessages] = useState([
+    "All referees must confirm availability for Memorial Day weekend.",
+    "Game rule updates have been posted in your email."
+  ]);
 
-  const handleGameChange = (e) => {
-    setNewGame({ ...newGame, [e.target.name]: e.target.value });
-  };
+  const [stats] = useState({
+    totalGames: 4,
+    hoursWorked: 8
+  });
 
-  const handleGameSubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch('https://referee-scheduler-backend.onrender.com/api/games', {
-      method: 'POST',
-      headers: {
-        'x-auth-token': token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newGame)
-    });
-    const data = await res.json();
-    if (res.ok) {
-      alert('Game created!');
-      setGames([...games, data]);
-      setNewGame({ date: '', time: '', location: '', teams: '', level: '', refsNeeded: 1 });
-    } else {
-      alert(data.msg || 'Error creating game');
-    }
-  };
+  const handleAvailabilityToggle = () => {
+    setAvailable(prev => !prev);
+  };
 
-  return (
-    <div className="dashboard">
-      <button onClick={onLogout}>Logout</button>
-      <h2>Available Games</h2>
-      <ul>
-        {games.map(game => (
-          <li key={game._id}>
-            {game.date} {game.time} - {game.teams} @ {game.location} [{game.assignedRefs.length}/{game.refsNeeded}]
-            {userRole === 'referee' && <button onClick={() => handleSignup(game._id)}>Sign Up</button>}
-          </li>
-        ))}
-      </ul>
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfile(prev => ({ ...prev, [name]: value }));
+  };
 
-      {userRole === 'admin' && (
-        <>
-          <h3>Create New Game</h3>
-          <form onSubmit={handleGameSubmit}>
-            <input name="date" placeholder="Date" value={newGame.date} onChange={handleGameChange} required />
-            <input name="time" placeholder="Time" value={newGame.time} onChange={handleGameChange} required />
-            <input name="location" placeholder="Location" value={newGame.location} onChange={handleGameChange} required />
-            <input name="teams" placeholder="Teams" value={newGame.teams} onChange={handleGameChange} required />
-            <input name="level" placeholder="Level" value={newGame.level} onChange={handleGameChange} required />
-            <input name="refsNeeded" type="number" placeholder="Refs Needed" value={newGame.refsNeeded} onChange={handleGameChange} required />
-            <button type="submit">Post Game</button>
-          </form>
-        </>
-      )}
-    </div>
-  );
-}
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
+
+  const handleSignup = (game) => {
+    if (!signedUpGames.find(g => g.id === game.id)) {
+      setSignedUpGames(prev => [...prev, game]);
+    }
+  };
+
+  return (
+    <div className="dashboard-container">
+      <h1>Welcome, {userEmail}</h1>
+      <button onClick={handleLogout} className="logout-btn">Logout</button>
+
+      <section>
+        <h2>Availability</h2>
+        <label>
+          <input
+            type="checkbox"
+            checked={available}
+            onChange={handleAvailabilityToggle}
+          />
+          {available ? 'Available for Games' : 'Not Available'}
+        </label>
+      </section>
+
+      <section>
+        <h2>Upcoming Games</h2>
+        <ul>
+          {upcomingGames.map((game) => (
+            <li key={game.id}>
+              {game.date} at {game.time} – {game.location}
+              <button onClick={() => handleSignup(game)} style={{ marginLeft: '10px' }}>
+                Sign Up
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2>Signed-Up Games</h2>
+        <ul>
+          {signedUpGames.map((game, index) => (
+            <li key={index}>
+              {game.date} at {game.time} – {game.location}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2>Admin Notes</h2>
+        <ul>
+          {adminMessages.map((msg, index) => (
+            <li key={index}>{msg}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2>Stats</h2>
+        <p>Total Games Worked: {stats.totalGames}</p>
+        <p>Total Hours: {stats.hoursWorked}</p>
+      </section>
+
+      <section>
+        <h2>Profile Info</h2>
+        <label>
+          Name:
+          <input type="text" name="name" value={profile.name} onChange={handleProfileChange} />
+        </label>
+        <label>
+          Email:
+          <input type="email" name="email" value={profile.email} onChange={handleProfileChange} />
+        </label>
+        <label>
+          Password:
+          <input type="password" name="password" value={profile.password} onChange={handleProfileChange} />
+        </label>
+      </section>
+    </div>
+  );
+};
 
 export default Dashboard;
