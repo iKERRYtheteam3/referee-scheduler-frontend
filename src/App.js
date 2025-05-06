@@ -1,30 +1,35 @@
 
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './Login';
-import Signup from './Signup';
-import Dashboard from './Dashboard';
+import React, { useState } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import Login from "./Login";
+import Signup from "./Signup";
+import Dashboard from "./Dashboard";
+import logo from "./assets/logo.png";
 
 function App() {
-  const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || '');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   const handleLogin = (email) => {
-    localStorage.setItem('userEmail', email);
+    setIsLoggedIn(true);
     setUserEmail(email);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('userEmail');
-    setUserEmail('');
+    setIsLoggedIn(false);
+    setUserEmail("");
   };
 
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={userEmail ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />} />
-        <Route path="/signup" element={<Signup onSignup={handleLogin} />} />
-        <Route path="/dashboard" element={userEmail ? <Dashboard userEmail={userEmail} onLogout={handleLogout} /> : <Navigate to="/" />} />
-      </Routes>
+      <div className="App">
+        <img src={logo} alt="Logo" style={{ width: "180px", margin: "20px auto", display: "block" }} />
+        <Routes>
+          <Route path="/" element={<Login onLogin={handleLogin} />} />
+          <Route path="/signup" element={<Signup onSignup={handleLogin} />} />
+          <Route path="/dashboard" element={isLoggedIn ? <Dashboard userEmail={userEmail} onLogout={handleLogout} /> : <Navigate to="/" />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
