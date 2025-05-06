@@ -1,20 +1,29 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
 import Signup from './Signup';
+import Dashboard from './Dashboard';
 
 function App() {
-  const handleLogin = (token) => {
-    localStorage.setItem('token', token);
-    window.location.href = '/dashboard';
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || '');
+
+  const handleLogin = (email) => {
+    localStorage.setItem('userEmail', email);
+    setUserEmail(email);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('userEmail');
+    setUserEmail('');
   };
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/signup" element={<Signup onLogin={handleLogin} />} />
+        <Route path="/" element={userEmail ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />} />
+        <Route path="/signup" element={<Signup onSignup={handleLogin} />} />
+        <Route path="/dashboard" element={userEmail ? <Dashboard userEmail={userEmail} onLogout={handleLogout} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
