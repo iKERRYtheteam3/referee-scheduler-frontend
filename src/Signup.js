@@ -1,40 +1,58 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './Form.css';
 
-function Signup({ onLogin }) {
+import React, { useState } from 'react';
+
+const Signup = ({ onSignup }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/register', {
+      const res = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password })
       });
 
-      if (!response.ok) throw new Error('Signup failed');
-      const data = await response.json();
-      onLogin(data.token);
-    } catch (error) {
-      alert('Signup failed: ' + error.message);
+      const data = await res.json();
+      if (res.ok) {
+        onSignup(email);
+      } else {
+        alert(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      alert('Error connecting to server');
     }
   };
 
   return (
-    <div className="form-container">
-      <img src="./logo.png" alt="Logo" className="logo" />
+    <div className="signup-container">
       <h2>Sign Up</h2>
       <form onSubmit={onSubmit}>
-        <input type="email" placeholder="Email" required onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" required onChange={(e) => setPassword(e.target.value)} />
+        <input
+          type="email"
+          id="signup-email"
+          name="email"
+          autoComplete="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          id="signup-password"
+          name="password"
+          autoComplete="new-password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
         <button type="submit">Sign Up</button>
       </form>
-      <p>Already have an account? <Link to="/login">Login here</Link></p>
     </div>
   );
-}
+};
 
 export default Signup;
