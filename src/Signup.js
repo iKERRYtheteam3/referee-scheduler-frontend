@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import './Dashboard.css';
-import logo from './logo.png';
+import logo from './assets/logo.png';
 
 function Signup({ onSignup, toggleForm }) {
   const [email, setEmail] = useState('');
