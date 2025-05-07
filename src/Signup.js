@@ -1,48 +1,57 @@
-
 import React, { useState } from 'react';
-import './Dashboard.css';
-import logo from './assets/logo.png';
+import './Form.css';
 
-function Signup({ onSignup, toggleForm }) {
+const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const handleSignup = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
     try {
-      const response = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/register', {
+      const res = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        onSignup(email);
-      } else {
-        alert(data.message || 'Signup failed');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Signup failed');
       }
-    } catch (error) {
-      console.error('Signup error:', error);
-      alert('Signup failed.');
+
+      const data = await res.json();
+      setSuccess('Signup successful! You can now log in.');
+      setEmail('');
+      setPassword('');
+      setName('');
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
-    <div className="container">
-      <img src={logo} alt="Logo" className="logo" />
-      <form onSubmit={handleSignup} className="form">
-        <h2>Create an Account</h2>
+    <div className="form-container">
+      <h2>Sign Up</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          name="email"
-          autoComplete="email"
         />
         <input
           type="password"
@@ -50,17 +59,13 @@ function Signup({ onSignup, toggleForm }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          name="new-password"
-          autoComplete="new-password"
         />
         <button type="submit">Sign Up</button>
-        <p>
-          Already have an account?{' '}
-          <button type="button" onClick={toggleForm} className="toggle-button">Login</button>
-        </p>
+        {error && <p className="error">{error}</p>}
+        {success && <p className="success">{success}</p>}
       </form>
     </div>
   );
-}
+};
 
 export default Signup;
