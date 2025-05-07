@@ -1,31 +1,37 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Form.css';
-import logo from './assets/logo.png';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Form.css";
+import logo from "./assets/logo.png";
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("https://referee-scheduler-backend.onrender.com/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
-        navigate('/dashboard');
-      } else {
         const data = await response.json();
-        console.error('Login failed:', data);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userRole", data.role);
+        navigate(data.role === "admin" ? "/admin" : "/dashboard");
+      } else {
+        const errorData = await response.json();
+        alert("Login failed: " + errorData.msg);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
+      alert("An error occurred during login.");
     }
   };
 
@@ -34,11 +40,29 @@ function Login() {
       <img src={logo} alt="Logo" className="form-logo" />
       <h2>Login</h2>
       <form onSubmit={onSubmit}>
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
-        <button type="submit">Log In</button>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          id="email"
+          name="email"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          id="password"
+          name="password"
+        />
+        <button type="submit">Login</button>
       </form>
-      <p>Don't have an account? <span className="form-toggle" onClick={() => navigate('/signup')}>Sign up</span></p>
+      <p>
+        Don't have an account? <a href="/signup">Sign up</a>
+      </p>
     </div>
   );
 }
