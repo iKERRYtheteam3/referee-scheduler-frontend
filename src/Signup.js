@@ -1,68 +1,60 @@
+
 import React, { useState } from 'react';
 import './Form.css';
+import logo from './assets/logo.png';
 
-const Signup = () => {
+const Signup = ({ onSwitchToLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
     try {
       const res = await fetch('https://referee-scheduler-backend.onrender.com/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Signup failed');
-      }
-
-      const data = await res.json();
-      setSuccess('Signup successful! You can now log in.');
-      setEmail('');
-      setPassword('');
-      setName('');
+      if (!res.ok) throw new Error('Signup failed');
+      alert('Account created! You can now login.');
+      onSwitchToLogin();
     } catch (err) {
-      setError(err.message);
+      console.error('Signup error:', err);
+      alert('Signup failed. Please try again.');
     }
   };
 
   return (
     <div className="form-container">
-      <h2>Sign Up</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+      <img src={logo} alt="Logo" className="form-logo" />
+      <form onSubmit={onSubmit} className="form-box">
+        <h2>Create Account</h2>
         <input
           type="email"
-          placeholder="Email"
           value={email}
+          placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
           required
+          name="email"
         />
         <input
           type="password"
-          placeholder="Password"
           value={password}
+          placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
           required
+          name="password"
         />
         <button type="submit">Sign Up</button>
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
+        <p>
+          Already have an account?{' '}
+          <span className="toggle-link" onClick={onSwitchToLogin}>
+            Log In
+          </span>
+        </p>
       </form>
     </div>
   );
